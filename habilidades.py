@@ -53,6 +53,11 @@ class Altera_Habilidades(Resource):
         return response
 
 
-
-
-
+# recebe uma lista de habilidades e devolve as que não correspondem com as habilidades no sistema
+def compara_habilidades(habilidades_usr):
+    tmp_usr_hab = habilidades_usr[:]
+    for usr_hab in habilidades_usr:
+        for hab in lista_habilidades:
+            if hab.lower() == usr_hab.lower():
+                tmp_usr_hab.remove(usr_hab)
+    return tmp_usr_hab

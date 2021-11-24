@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
 from habilidades import Habilidades, Altera_Habilidades
+from habilidades import compara_habilidades  as Hb
 import json
 
 app = Flask(__name__)
@@ -16,6 +17,7 @@ desenvolvedores = [
         'nome': 'Galleani',
         'habilidades': ['python', 'Django']}
 ]
+
 # Devolve um desenvolvedor pelo id também altera altera e deleta.
 class Desenvolvedor(Resource):
     def get(self, id):
@@ -26,26 +28,38 @@ class Desenvolvedor(Resource):
         except Exception:
             response = {'status':'Erro','mensagem':'Erro desconhecido'}
         return response
+
     def put(self, id):
         dados = json.loads(request.data)
         desenvolvedores[id] = dados
         return dados
+
     def delete(self, id):
         desenvolvedores.pop(id)
         return {'status':'Sucesso','mensagem':'Registro excluído'}
+
+
 # Lista todos os desenvolvedores e permite registrar um novo.
-class lista_desenvolvedores(Resource):
+class ListaDesenvolvedores(Resource):
     def post(self):
         dados = json.loads(request.data)
-        posicao = len(desenvolvedores)
-        dados['id'] = posicao
-        desenvolvedores.append(dados)
-        return desenvolvedores[posicao]
+        hab = Hb(dados['habilidades'])
+        if len(hab) == 0:
+            posicao = len(desenvolvedores)
+            dados['id'] = str(posicao)
+            desenvolvedores.append(dados)
+            response = desenvolvedores[posicao]
+        else:
+            mensagem = 'Uma ou mais habilidades não foram encontradas no sistema, verifique a ortografia ou adicione a(s) ao sistema.'
+            response = {'status': 'Erro', 'mensagem': mensagem, 'Habilidades desconhecidas': hab}
+        return response
+
     def get(self):
         return desenvolvedores
 
-api.add_resource(Desenvolvedor,'/dev/<int:id>')
-api.add_resource(lista_desenvolvedores, '/dev')
+
+api.add_resource(Desenvolvedor, '/dev/<int:id>')
+api.add_resource(ListaDesenvolvedores, '/dev')
 api.add_resource(Habilidades, '/habilidades')
 api.add_resource(Altera_Habilidades,'/habilidades/<int:id>')
 
